@@ -27,7 +27,7 @@ class Dashboard extends StatelessWidget {
                     onTap: () => Navigator.pop(context),
                   ),
                   const Text(
-                    "Hey Sweetie!",
+                    "Hey there!",
                     style: kLargeTextStyle,
                   ),
                 ],

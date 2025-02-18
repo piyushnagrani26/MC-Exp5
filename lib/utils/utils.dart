@@ -11,7 +11,7 @@ const kMeduimTextStyle = TextStyle(
   fontSize: 24,
   fontWeight: FontWeight.w500,
   letterSpacing: 2,
-  color: Colors.grey,
+  color: Colors.black,
 );
 
 const kButtonTextStyle = TextStyle(
