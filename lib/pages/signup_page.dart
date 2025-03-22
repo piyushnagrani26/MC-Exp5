@@ -16,15 +16,19 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController ageController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController meditationGoalController =
+      TextEditingController();
+
   String gender = "Male";
   String meditationType = "Mindfulness";
   double sessionDuration = 10;
+  String experienceLevel = "Beginner";
+  List<String> preferredTimes = [];
+  bool receivesReminders = false;
 
-  /// Function to save user data in Hive
   Future<void> _saveUserData() async {
     var box = await Hive.openBox('users');
 
-    // Check if email is already registered
     if (box.containsKey(emailController.text)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -33,24 +37,23 @@ class _SignUpPageState extends State<SignUpPage> {
       return;
     }
 
-    // Save user details in Hive
     box.put(emailController.text, {
       'name': nameController.text,
       'age': ageController.text,
       'gender': gender,
       'meditationType': meditationType,
       'sessionDuration': sessionDuration,
-      'password': passwordController.text, // Store password for authentication
+      'experienceLevel': experienceLevel,
+      'preferredTimes': preferredTimes,
+      'receivesReminders': receivesReminders,
+      'meditationGoal': meditationGoalController.text,
+      'password': passwordController.text,
     });
-
-    print(
-        "Stored users in Hive: ${box.toMap()}"); // Debugging: Print stored users
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('User Registered Successfully!')),
     );
 
-    // Navigate to Login Page after successful registration
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const LoginPage()),
@@ -77,140 +80,89 @@ class _SignUpPageState extends State<SignUpPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text(
+                    const Text(
                       'Sign Up',
                       style: TextStyle(
-                        fontSize: 48,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                        letterSpacing: 1.5,
-                        shadows: [
-                          Shadow(
-                            offset: const Offset(2, 2),
-                            blurRadius: 5,
-                            color: Colors.black.withOpacity(0.4),
-                          ),
-                        ],
-                      ),
-                      textAlign: TextAlign.center,
+                          fontSize: 48,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black),
                     ),
                     const SizedBox(height: 40),
-                    _buildTextField(
-                        controller: nameController,
-                        labelText: 'Name',
-                        hintText: 'Enter your full name',
-                        isPassword: false),
-                    const SizedBox(height: 20),
-                    _buildTextField(
-                        controller: ageController,
-                        labelText: 'Age',
-                        hintText: 'Enter your age',
-                        isPassword: false),
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        const Text("Gender:"),
-                        Radio(
-                          value: "Male",
-                          groupValue: gender,
-                          onChanged: (value) {
-                            setState(() {
-                              gender = value.toString();
-                            });
-                          },
-                        ),
-                        const Text("Male"),
-                        Radio(
-                          value: "Female",
-                          groupValue: gender,
-                          onChanged: (value) {
-                            setState(() {
-                              gender = value.toString();
-                            });
-                          },
-                        ),
-                        const Text("Female"),
-                      ],
+                    _buildBorderedContainer(
+                      _buildTextField(nameController, 'Name',
+                          'Enter your full name', false),
                     ),
-                    const SizedBox(height: 10),
-                    DropdownButton<String>(
-                      value: meditationType,
-                      items: [
+                    const SizedBox(height: 20),
+                    _buildBorderedContainer(
+                      _buildTextField(
+                          ageController, 'Age', 'Enter your age', false),
+                    ),
+                    const SizedBox(height: 20),
+                    _buildBorderedContainer(
+                      _buildGenderSelection(),
+                    ),
+                    const SizedBox(height: 20),
+                    _buildBorderedContainer(
+                      _buildDropdown('Meditation Type', [
                         'Mindfulness',
                         'Transcendental',
                         'Zen',
                         'Vipassana'
-                      ].map((String type) {
-                        return DropdownMenuItem<String>(
-                          value: type,
-                          child: Text(type),
-                        );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          meditationType = newValue!;
-                        });
-                      },
+                      ], (val) {
+                        setState(() => meditationType = val);
+                      }, meditationType),
                     ),
                     const SizedBox(height: 20),
-                    Text("Session Duration: ${sessionDuration.toInt()} mins"),
-                    Slider(
-                      value: sessionDuration,
-                      min: 5,
-                      max: 60,
-                      divisions: 11,
-                      label: sessionDuration.toInt().toString(),
-                      onChanged: (double value) {
-                        setState(() {
-                          sessionDuration = value;
-                        });
-                      },
+                    _buildBorderedContainer(
+                      _buildExperienceLevelSelection(),
                     ),
                     const SizedBox(height: 20),
-                    _buildTextField(
-                        controller: emailController,
-                        labelText: 'Email',
-                        hintText: 'Enter your email address',
-                        isPassword: false),
+                    _buildBorderedContainer(
+                      _buildPreferredTimesSelection(),
+                    ),
                     const SizedBox(height: 20),
-                    _buildTextField(
-                        controller: passwordController,
-                        labelText: 'Password',
-                        hintText: 'Enter your password',
-                        isPassword: true),
+                    _buildBorderedContainer(
+                      _buildReminderSwitch(),
+                    ),
+                    const SizedBox(height: 20),
+                    _buildBorderedContainer(
+                      _buildSlider('Session Duration', 5, 60, sessionDuration,
+                          (val) {
+                        setState(() => sessionDuration = val);
+                      }),
+                    ),
+                    const SizedBox(height: 20),
+                    _buildBorderedContainer(
+                      _buildTextField(emailController, 'Email',
+                          'Enter your email address', false),
+                    ),
+                    const SizedBox(height: 20),
+                    _buildBorderedContainer(
+                      _buildTextField(passwordController, 'Password',
+                          'Enter your password', true),
+                    ),
+                    const SizedBox(height: 20),
+                    _buildBorderedContainer(
+                      _buildTextField(meditationGoalController,
+                          'Meditation Goal', 'Why do you meditate?', false),
+                    ),
                     const SizedBox(height: 40),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 20.0),
-                      child: RectangleButton(
+                    RectangleButton(
                         onPressed: _saveUserData,
-                        child: const Text(
-                          'Sign Up',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
+                        child: const Text('Sign Up',
+                            style:
+                                TextStyle(fontSize: 18, color: Colors.white))),
                     const SizedBox(height: 20),
                     TextButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(
+                      onPressed: () => Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const LoginPage()),
-                        );
-                      },
-                      child: const Text(
-                        'Already have an account? Login',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w500,
-                          decoration: TextDecoration.underline,
-                        ),
-                      ),
+                              builder: (context) => const LoginPage())),
+                      child: const Text('Already have an account? Login',
+                          style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 20,
+                              decoration: TextDecoration.underline)),
                     ),
                   ],
                 ),
@@ -222,37 +174,131 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String labelText,
-    required String hintText,
-    required bool isPassword,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black26,
-            offset: Offset(2, 4),
-            blurRadius: 8,
-          ),
-        ],
-      ),
-      child: TextField(
+  Widget _buildTextField(TextEditingController controller, String label,
+      String hint, bool isPassword) {
+    return TextField(
         controller: controller,
         obscureText: isPassword,
-        style:
-            const TextStyle(color: Colors.black, fontWeight: FontWeight.w500),
         decoration: InputDecoration(
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
-          labelText: labelText,
-          hintText: hintText,
+          labelText: label,
+          hintText: hint,
           border: InputBorder.none,
+        ));
+  }
+
+  Widget _buildDropdown(String label, List<String> items,
+      Function(String) onChanged, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: const TextStyle(fontSize: 16, color: Colors.black87)),
+        DropdownButton<String>(
+            value: value,
+            isExpanded: true,
+            items: items
+                .map((item) => DropdownMenuItem(value: item, child: Text(item)))
+                .toList(),
+            onChanged: (val) => onChanged(val!)),
+      ],
+    );
+  }
+
+  Widget _buildGenderSelection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Gender',
+            style: TextStyle(fontSize: 16, color: Colors.black87)),
+        Row(
+          children: ['Male', 'Female']
+              .map((g) => Row(children: [
+                    Radio(
+                        value: g,
+                        groupValue: gender,
+                        onChanged: (val) => setState(() => gender = val!)),
+                    Text(g)
+                  ]))
+              .toList(),
         ),
+      ],
+    );
+  }
+
+  Widget _buildExperienceLevelSelection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Experience Level',
+            style: TextStyle(fontSize: 16, color: Colors.black87)),
+        Column(
+          children: ['Beginner', 'Intermediate', 'Advanced']
+              .map((level) => RadioListTile(
+                  value: level,
+                  groupValue: experienceLevel,
+                  title: Text(level),
+                  onChanged: (val) => setState(() => experienceLevel = val!)))
+              .toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPreferredTimesSelection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Preferred Times',
+            style: TextStyle(fontSize: 16, color: Colors.black87)),
+        Column(
+          children: ['Morning', 'Afternoon', 'Evening']
+              .map((time) => CheckboxListTile(
+                  value: preferredTimes.contains(time),
+                  title: Text(time),
+                  onChanged: (val) => setState(() => val!
+                      ? preferredTimes.add(time)
+                      : preferredTimes.remove(time))))
+              .toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildReminderSwitch() {
+    return SwitchListTile(
+        value: receivesReminders,
+        title: const Text('Receive Meditation Reminders?',
+            style: TextStyle(fontSize: 16, color: Colors.black87)),
+        onChanged: (val) => setState(() => receivesReminders = val));
+  }
+
+  Widget _buildSlider(String label, double min, double max, double value,
+      Function(double) onChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('$label: ${value.toInt()} mins',
+            style: const TextStyle(fontSize: 16, color: Colors.black87)),
+        Slider(
+            value: value,
+            min: min,
+            max: max,
+            divisions: 11,
+            label: value.toInt().toString(),
+            onChanged: onChanged),
+      ],
+    );
+  }
+
+  Widget _buildBorderedContainer(Widget child) {
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.blueAccent, width: 1),
       ),
+      child: child,
     );
   }
 }
