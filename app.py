@@ -2,7 +2,7 @@ from flask import Flask, jsonify
 
 app = Flask(__name__)
 
-# Fake relaxation music data
+
 songs = [
     {"id": 1, "title": "Calm Waves", "artist": "Zen Sounds", "duration": "5:32", "album": "Nature Therapy"},
     {"id": 2, "title": "Peaceful Mind", "artist": "Relaxing Vibes", "duration": "4:45", "album": "Tranquility"},
